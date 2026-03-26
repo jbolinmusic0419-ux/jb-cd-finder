@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JB CD Finder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: system-ui;
+    background: #0b1020;
+    color: white;
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+  }
+  .container {
+    max-width: 600px;
+    width: 90%;
+    background: #151a2c;
+    padding: 24px;
+    border-radius: 12px;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: none;
+  }
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>JB CD Finder</h1>
+  <div id="app"></div>
+</div>
+
+<script>
+const URL = "https://script.google.com/macros/s/AKfycbzz1gZhN_cmd6izrZ8Nk8-HpPd-YzqxHgj3ihtvXenO_67PAexsYcpfZMDFIikf97B7/exec";
+
+let step = 0;
+const answers = {};
+
+const questions = [
+  { id: "firstName", text: "First name?" },
+  { id: "email", text: "Email?" },
+  { id: "amount", text: "Amount?", options: ["500","1000","5000","10000+"] },
+  { id: "timeframe", text: "Timeframe?", options: ["3mo","6mo","12mo","18mo+"] }
+];
+
+const app = document.getElementById("app");
+
+function render() {
+  const q = questions[step];
+  let input = "";
+  if (q.options) {
+    input = `<select id="val">
+      <option value="">Select</option>
+      ${q.options.map(o=>`<option value="${o}">${o}</option>`).join("")}
+    </select>`;
+  } else {
+    input = `<input id="val" />`;
+  }
+  app.innerHTML = `
+    <div style="margin-bottom:10px;">${q.text}</div>
+    ${input}
+    <button onclick="next()">Next</button>
+  `;
+}
+
+function next() {
+  const val = document.getElementById("val").value;
+  if (!val) return;
+  answers[questions[step].id] = val;
+  if (step < questions.length - 1) {
+    step++;
+    render();
+  } else {
+    submit();
+  }
+}
+
+function submit() {
+  console.log("Sending:", answers);
+  fetch(URL, {
+    method: "POST",
+    body: JSON.stringify(answers)
+  })
+  .then(r => r.text())
+  .then(res => {
+    console.log("Response:", res);
+    app.innerHTML = "<h3>Done ✔ Check your email</h3>";
+  })
+  .catch(err => {
+    console.error(err);
+    app.innerHTML = "<h3>Error sending</h3>";
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
